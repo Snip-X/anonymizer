@@ -96,6 +96,7 @@ Anonymizer can replace the original data by anonymized entries or truncate the d
 ##### Simple types
 - firstname
 - lastname
+- full_name
 - login
 - email
 - telephone
@@ -118,14 +119,15 @@ Anonymizer can replace the original data by anonymized entries or truncate the d
 - pesel - Polish PESEL number with validation
 
 #### How to replace data in a table?
-In the example below, data in the `user_address` table  will be replaced by new, anonymized data. The example database contains a `user_address` table with the following columns - `firstname`, `lastname`, `postcode`, `address`, `city`, `email`, `phone`,  `company`, `vat_id`. We will replace all columns' contents with some valid data, consistent with its previous type.
+In the example below, data in the `user_address` table  will be replaced by new, anonymized data. The example database contains a `user_address` table with the following columns - `firstname`, `lastname`, `postcode`, `address`, `city`, `email`, `phone`,  `company`, `vat_id`. We will replace all columns' contents with some valid data, consistent with its previous type. A key must be specified if you want a better performance
 
 ```
 "tables": {
     "user_address": {
         "firstname": {
             "type": "firstname",
-            "action": "update"
+            "action": "update",
+            "key": "1"
         },
         "lastname": {
             "type": "lastname",

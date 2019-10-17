@@ -3,8 +3,8 @@
 # Generator to fake data
 class Fake
   def self.user
-    firstname = Faker::Name.first_name
-    lastname = Faker::Name.last_name
+    firstname = escape_characters_in_string(Faker::Name.first_name)
+    lastname = escape_characters_in_string(Faker::Name.last_name)
 
     prepare_user_hash firstname, lastname
   end
@@ -16,6 +16,8 @@ class Fake
       primary_key :id
       String :firstname
       String :lastname
+      String :fullname
+      String :ancestor
       String :login
       String :email
       String :telephone
@@ -24,7 +26,6 @@ class Fake
       String :postcode
       String :city
       String :full_address
-      String :full_name
       String :vat_id
       String :ip
       String :quote
@@ -42,8 +43,9 @@ class Fake
       lastname: lastname,
       email: Faker::Internet.email(name:"#{firstname} #{lastname}"),
       login: Faker::Internet.user_name(specifier:"#{firstname} #{lastname}",separators: %w[. _ -]),
+      fullname: "#{firstname} #{lastname}",
       telephone: Faker::PhoneNumber.cell_phone,
-      full_name: Faker::Name.name,
+      ancestor: Faker::Name.name,
       company: Faker::Company.name,
       street: Faker::Address.street_name,
       postcode: Faker::Address.postcode,
@@ -87,7 +89,10 @@ class Fake
 
     sum
   end
-
+  def self.escape_characters_in_string(string)
+    pattern = /(\'|\"|\.|\*|\/|\-|\\)/
+    string.gsub(pattern){|match|"\\"  + match} # <-- Trying to take the currently found match and add a \ before it I have no idea how to do that).
+  end
   def self.district_number
     %w[01 03 47 49 91 93 95 97].sample
   end

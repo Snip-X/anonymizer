@@ -15,18 +15,18 @@ class Database
       port: CONFIG['database']['port'],
       max_connections: CONFIG['database']['max_connections'],
       #single_threaded: :single_threaded,
-      timeout: 30,
-      write_timeout: 30,
-      read_timeout: 30,
-      connect_timeout: 30,
-      pool_timeout: 30,
+      timeout: 1800,
+      write_timeout: 1800,
+      read_timeout: 1800,
+      connect_timeout: 1800,
+      pool_timeout: 1800,
       password: CONFIG['database']['pass']
     )
     @db.extension(:connection_validator)
   end
 
   def anonymize
-    insert_fake_data
+    #insert_fake_data
     before_queries
     if @config['keys']
       @config['tables'].each do |table_name, columns_in_order|
@@ -131,8 +131,8 @@ class Database
     if @config['custom_queries'] &&
         @config['custom_queries']['before'] &&
         @config['custom_queries']['before'].is_a?(Array)
-
-      @config['custom_queries']['before'].each do |query|
+        @db.disconnect
+        Parallel.each(@config['custom_queries']['before'],in_processes: (Concurrent.processor_count*2),progress: "Executing thoses queries #{@config['custom_queries']['before']}") do |query|
         @db.run query
       end
     end

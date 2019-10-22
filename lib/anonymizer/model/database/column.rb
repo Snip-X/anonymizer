@@ -68,8 +68,12 @@ class Database
     end
 
     def self.manage_type_uniq_email
-      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
-      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
+        output = "SELECT '"
+        output += Faker::Internet.unique.email
+        output +="')"
+        output
+#      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
+#      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
     end
 
     def self.manage_type_uniq_login

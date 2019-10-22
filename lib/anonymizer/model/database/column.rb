@@ -67,13 +67,39 @@ class Database
       'SELECT FLOOR((NOW() + RAND()) * (RAND() * 119))) '
     end
 
+    def self.manage_type_random_lastname
+        output = "SELECT '"
+        output += Faker::Name.last_name 
+        output +="')"
+        output
+#      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
+#      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
+    end
+    def self.manage_type_random_firstname
+        output = "SELECT '"
+        output += Faker::Name.first_name 
+        output +="')"
+        output
+#      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
+#      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
+    end
+
+
     def self.manage_type_uniq_email
-      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
-      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
+        output = "SELECT '"
+        output += Faker::Internet.unique.email
+        output +="')"
+        output
+#      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
+#      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
     end
 
     def self.manage_type_uniq_login
-      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())))) '
+        output = "SELECT '"
+        output += Faker::Internet.unique.login
+        output +="')"
+        output
+     # 'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())))) '
     end
 
     def self.fill_where_clause(info, table_name)

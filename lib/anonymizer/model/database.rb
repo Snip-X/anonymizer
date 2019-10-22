@@ -26,7 +26,7 @@ class Database
   end
 
   def anonymize
-    #insert_fake_data
+    insert_fake_data
     before_queries
     if @config['keys']
       @config['tables'].each do |table_name, columns_in_order|

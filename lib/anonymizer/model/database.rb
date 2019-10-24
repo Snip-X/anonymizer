@@ -7,6 +7,8 @@ class Database
   def initialize(config)
     @config = config
     @fake_len=CONFIG['fake_datas']
+    @timeout = CONFIG['database']['timeout']
+    @timeout ||= 3600
     @db = Sequel.connect(
       adapter: :mysql2,
       database: @config['database']['name'],
@@ -15,13 +17,15 @@ class Database
       port: CONFIG['database']['port'],
       max_connections: CONFIG['database']['max_connections'],
       #single_threaded: :single_threaded,
-      timeout: CONFIG['database']['timeout'],
-      write_timeout: CONFIG['database']['timeout'],
-      read_timeout: CONFIG['database']['timeout'],
-      connect_timeout: CONFIG['database']['timeout'],
-      pool_timeout: CONFIG['database']['timeout'],
+      timeout: @timeout,
+      write_timeout: @timeout,
+      read_timeout: @timeout,
+      connect_timeout: @timeout,
+      pool_timeout: @timeout,
       password: CONFIG['database']['pass']
     )
+    puts @timeout
+    exit
     @db.extension(:connection_validator)
   end
 

@@ -135,7 +135,9 @@ class Database
         @config['custom_queries']['before'].is_a?(Array)
         @db.disconnect
         Parallel.each(@config['custom_queries']['before'],in_processes: (Concurrent.processor_count*2),progress: "Executing thoses queries #{@config['custom_queries']['before']}") do |query|
-        @db.run query
+    	    @db.run "SET FOREIGN_KEY_CHECKS=0;"
+	    @db.run query
+    	    @db.run "SET FOREIGN_KEY_CHECKS=1;"
       end
     end
   end

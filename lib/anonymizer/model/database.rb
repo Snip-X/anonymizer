@@ -15,18 +15,18 @@ class Database
       port: CONFIG['database']['port'],
       max_connections: CONFIG['database']['max_connections'],
       #single_threaded: :single_threaded,
-      timeout: 1800,
-      write_timeout: 1800,
-      read_timeout: 1800,
-      connect_timeout: 1800,
-      pool_timeout: 1800,
+      timeout: CONFIG['database']['timeout'],
+      write_timeout: CONFIG['database']['timeout'],
+      read_timeout: CONFIG['database']['timeout'],
+      connect_timeout: CONFIG['database']['timeout'],
+      pool_timeout: CONFIG['database']['timeout'],
       password: CONFIG['database']['pass']
     )
     @db.extension(:connection_validator)
   end
 
   def anonymize
-    #insert_fake_data
+    insert_fake_data
     before_queries
     if @config['keys']
       @config['tables'].each do |table_name, columns_in_order|

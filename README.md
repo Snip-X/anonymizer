@@ -74,13 +74,14 @@ In the example below, the database dump file is in the `/path/to/database/dump/`
 ```
 
 #### Working with remote database dump
-In the example below, the database dump file is stored on a remote server with an IP address of `1.2.3.4` and ssh port of `5022`. The ssh user's name is `anonymizer`, the directory on remote host with the database dump is `/path/to/database/dump/`. In this case, let's assume that we need to add `--rsync-path=\"sudo rsync\"` option to our rsync dump download command.
+In the example below, the database dump file is stored on a remote server with an IP address of `1.2.3.4` and ssh port of `5022`. The ssh user's name is `anonymizer`, the directory on remote host with the database dump is `/path/to/database/dump/`. In this case, let's assume that we need to add `--rsync-path=\"sudo rsync\"` option to our rsync dump download command.Timeout is the maximum execution time for one query. 
 
 ```
 "dump_server": {
     "host": "10.15.4.254",
     "user": "anonymizer",
     "port": "5022",
+    "timeout" : "3600", 
     "passphrase": "",
     "path": "/media/drbd0/backup/sqldump/sqldump",
     "rsync_options": "--rsync-path=\"sudo rsync\""

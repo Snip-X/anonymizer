@@ -24,8 +24,6 @@ class Database
       pool_timeout: @timeout,
       password: CONFIG['database']['pass']
     )
-    puts @timeout
-    exit
     @db.extension(:connection_validator)
   end
 

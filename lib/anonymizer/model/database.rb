@@ -34,23 +34,30 @@ class Database
       @config['tables'].each do |table_name, columns_in_order|
         columns = columns_in_order.to_a.reverse.to_h
         key_name = get_key_name(table_name,columns)
-        counter   = @db.fetch(prepare_query(table_name, columns)).collect{|nb_entries| nb_entries[:sql_nb_entries]}[0]
-        keys_list = @db.fetch(prepare_key_list(table_name, columns)).collect{|cle| cle[:sql_key_list]}
-        ctr_keys_list=keys_list.length-1
-        #queries = column_query(table_name, columns)
-        if counter > ctr_keys_list+1
-          puts "[OMG]The key column count is less than all rows count in the table"
-        else
-          @db.pool.connection_validation_timeout = -1
-          Parallel.map(0..ctr_keys_list,in_processes: (Concurrent.processor_count*2),progress: "Update table #{table_name} to inject fake data") do |i|
-            key_in_list=escape_characters_in_string(keys_list[i])
-            @db.disconnect ## Disconnection to make a specific connection for MT Process           
-            @db.transaction do
-              @db[:"#{table_name}"].for_update.where(Sequel.lit("#{key_name[table_name]}=#{key_in_list}"))
-              column_query_if_key(table_name, columns,key_name,key_in_list,i+1).each do |queri|       
-                  @db.run queri
+        if  key_name[table_name] != nil
+          counter   = @db.fetch(prepare_query(table_name, columns)).collect{|nb_entries| nb_entries[:sql_nb_entries]}[0]
+          keys_list = @db.fetch(prepare_key_list(table_name, columns)).collect{|cle| cle[:sql_key_list]}
+          ctr_keys_list=keys_list.length-1
+          #queries = column_query(table_name, columns)
+          if counter > ctr_keys_list+1
+            puts "[OMG]The key column count is less than all rows count in the table"
+          else
+            @db.pool.connection_validation_timeout = -1
+            Parallel.map(0..ctr_keys_list,in_processes: (Concurrent.processor_count*2),progress: "Update table #{table_name} to inject fake data") do |i|
+              key_in_list=escape_characters_in_string(keys_list[i])
+              @db.disconnect ## Disconnection to make a specific connection for MT Process           
+              @db.transaction do
+                @db[:"#{table_name}"].for_update.where(Sequel.lit("#{key_name[table_name]}=#{key_in_list}"))
+                column_query_if_key(table_name, columns,key_name,key_in_list,i+1).each do |queri|       
+                    @db.run queri
+                end
               end
             end
+          end
+        else 
+          queries = column_query(table_name, columns)
+          queries.each do |query|
+            @db.run query
           end
         end
       end
@@ -190,12 +197,7 @@ class Database
   # rubocop:enable Metrics/MethodLength
 
   def self.prepare_select_for_query(type)
-      query = if type == 'fullname'
-      "SELECT CONCAT_WS(' ', fake_user.firstname, fake_user.lastname) "
-    else
-      "SELECT fake_user.#{type} "
-    end
-
+      query = "SELECT fake_user.#{type} "
     query
   end
   def escape_characters_in_string(string)

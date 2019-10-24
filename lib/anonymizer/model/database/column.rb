@@ -83,6 +83,14 @@ class Database
 #      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
 #      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
     end
+    def self.manage_type_random_fullname
+        output = "SELECT '"
+        output += Faker::Name.name
+        output +="')"
+        output
+#      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
+#      'RAND())), "@", MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + RAND())), ".pl")) '
+    end
 
 
     def self.manage_type_uniq_email

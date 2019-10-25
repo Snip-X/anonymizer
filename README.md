@@ -113,6 +113,7 @@ Anonymizer can replace the original data by anonymized entries or truncate the d
 - website
 - iban
 - json
+- donttouch <- Special type to declare a column to do nothing on it, that's cool for primary key declaration (with key feature)
 
 ##### Special types
 - uniq_email - unique email address, because of [bug in mysql](https://bugs.mysql.com/bug.php?id=89474), anonymizer can't generate uniq email address based on email and some unique value form UUID mysql methiod

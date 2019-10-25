@@ -22,14 +22,17 @@ class Database
     def self.select_for_update(table_name, column_name, info,key_name, keys_for_where,id)
       column_type = info['type']
       queries = []
+      if column_type != "donttouch"
       #query = "SELECT #{column_name} FROM #{table_name} WHERE #{key_name[table_name]}='#{keys_for_where}' FOR UPDATE;"   
       query = "UPDATE  #{table_name} SET #{column_name} = ("
       query += manage_type_if_key(column_type,id)
-      query += "WHERE #{key_name[table_name]} = '#{keys_for_where}'"
+      query += " WHERE #{key_name[table_name]} = \"#{keys_for_where.to_s}\""
       query += fill_where_clause(info, table_name)
       query +=";"
+      else
+	query = "select 'toto';"
+      end
       queries.push query
-      
       queries
     end
 
@@ -69,7 +72,7 @@ class Database
 
     def self.manage_type_random_lastname
         output = "SELECT '"
-        output += Faker::Name.last_name 
+        output += escape_characters_in_string(Faker::Name.last_name)
         output +="')"
         output
 #      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
@@ -77,7 +80,7 @@ class Database
     end
     def self.manage_type_random_firstname
         output = "SELECT '"
-        output += Faker::Name.first_name 
+        output += escape_characters_in_string(Faker::Name.first_name)
         output +="')"
         output
 #      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
@@ -85,7 +88,7 @@ class Database
     end
     def self.manage_type_random_fullname
         output = "SELECT '"
-        output += Faker::Name.name
+        output += escape_characters_in_string(Faker::Name.name)
         output +="')"
         output
 #      'SELECT CONCAT(MD5(FLOOR((NOW() + RAND()) * (RAND() * RAND() / RAND()) + ' \
@@ -130,6 +133,15 @@ class Database
       require_fields.each do |required_field|
         raise ArgumentError, "#{required_field} is required in WHERE clause" unless where_clause.key?(required_field)
       end
+    end
+  end
+  def self.escape_characters_in_string(string)
+    if string.is_a? String
+      pattern = /(\'|\"|\.|\*|\/|\-|\\|\)|\$|\+|\(|\^|\?|\!|\~|\`)/
+      string.gsub(pattern){|match|"\\"  + match}
+    elsif string.is_a? Integer
+       string=string.to_s
+       string.gsub(/\s+/, "")
     end
   end
 end

@@ -7,6 +7,8 @@ class Database
   def initialize(config)
     @config = config
     @fake_len=CONFIG['fake_datas']
+    @timeout = CONFIG['database']['timeout']
+    @timeout ||= 3600
     @db = Sequel.connect(
       adapter: :mysql2,
       database: @config['database']['name'],
@@ -15,11 +17,11 @@ class Database
       port: CONFIG['database']['port'],
       max_connections: CONFIG['database']['max_connections'],
       #single_threaded: :single_threaded,
-      timeout: 1800,
-      write_timeout: 1800,
-      read_timeout: 1800,
-      connect_timeout: 1800,
-      pool_timeout: 1800,
+      timeout: @timeout,
+      write_timeout: @timeout,
+      read_timeout: @timeout,
+      connect_timeout: @timeout,
+      pool_timeout: @timeout,
       password: CONFIG['database']['pass']
     )
     @db.extension(:connection_validator)
@@ -32,23 +34,33 @@ class Database
       @config['tables'].each do |table_name, columns_in_order|
         columns = columns_in_order.to_a.reverse.to_h
         key_name = get_key_name(table_name,columns)
-        counter   = @db.fetch(prepare_query(table_name, columns)).collect{|nb_entries| nb_entries[:sql_nb_entries]}[0]
-        keys_list = @db.fetch(prepare_key_list(table_name, columns)).collect{|cle| cle[:sql_key_list]}
-        ctr_keys_list=keys_list.length-1
-        #queries = column_query(table_name, columns)
-        if counter > ctr_keys_list+1
-          puts "[OMG]The key column count is less than all rows count in the table"
-        else
-          @db.pool.connection_validation_timeout = -1
-          Parallel.map(0..ctr_keys_list,in_processes: (Concurrent.processor_count*2),progress: "Update table #{table_name} to inject fake data") do |i|
-            key_in_list=escape_characters_in_string(keys_list[i])
+        if  key_name[table_name] != nil
+          counter   = @db.fetch(prepare_query(table_name, columns)).collect{|nb_entries| nb_entries[:sql_nb_entries]}[0]
+          keys_list = @db.fetch(prepare_key_list(table_name, columns)).collect{|cle| cle[:sql_key_list]}
+          ctr_keys_list=keys_list.length-1
+          #queries = column_query(table_name, columns)
+          if counter > ctr_keys_list+1
+            puts "[OMG]The key column count is less than all rows count in the table"
+          else
+            @db.pool.connection_validation_timeout = -1
             @db.disconnect ## Disconnection to make a specific connection for MT Process           
-            @db.transaction do
-              @db[:"#{table_name}"].for_update.where(Sequel.lit("#{key_name[table_name]}=#{key_in_list}"))
-              column_query_if_key(table_name, columns,key_name,key_in_list,i+1).each do |queri|       
-                  @db.run queri
+            Parallel.map(0..ctr_keys_list,in_processes: (Concurrent.processor_count*2),progress: "Update table #{table_name} to inject fake data") do |i|
+              key_in_list=escape_characters_in_string(keys_list[i])
+#              @db.disconnect ## Disconnection to make a specific connection for MT Process           
+              @db.transaction do
+                @db[:"#{table_name}"].for_update.where(Sequel.lit("#{key_name[table_name]}=#{key_in_list}"))
+                column_query_if_key(table_name, columns,key_name,key_in_list,i+1).each do |queri|       
+                    @db.run queri
+                end
               end
             end
+          end
+        else 
+          queries = column_query(table_name, columns)
+	  progressbar = ProgressBar.create(:title => "Updating #{table_name}")
+          queries.each do |query|
+            progressbar.increment
+            @db.run query
           end
         end
       end
@@ -133,7 +145,9 @@ class Database
         @config['custom_queries']['before'].is_a?(Array)
         @db.disconnect
         Parallel.each(@config['custom_queries']['before'],in_processes: (Concurrent.processor_count*2),progress: "Executing thoses queries #{@config['custom_queries']['before']}") do |query|
-        @db.run query
+    	    @db.run "SET FOREIGN_KEY_CHECKS=0;"
+	        @db.run query
+    	    @db.run "SET FOREIGN_KEY_CHECKS=1;"
       end
     end
   end
@@ -186,16 +200,17 @@ class Database
   # rubocop:enable Metrics/MethodLength
 
   def self.prepare_select_for_query(type)
-      query = if type == 'fullname'
-      "SELECT CONCAT_WS(' ', fake_user.firstname, fake_user.lastname) "
-    else
-      "SELECT fake_user.#{type} "
-    end
-
+      query = "SELECT fake_user.#{type} "
     query
   end
   def escape_characters_in_string(string)
-    pattern = /(\'|\"|\.|\*|\/|\-|\\|\)|\$|\+|\(|\^|\?|\!|\~|\`)/
-    string.gsub(pattern){|match|"\\"  + match}
+    if string.is_a? String
+      pattern = /(\'|\"|\.|\*|\/|\-|\\|\)|\$|\+|\(|\^|\?|\!|\~|\`)/
+      string.gsub(pattern){|match|"\\"  + match}
+    elsif string.is_a? Integer
+       string=string.to_s
+       string.gsub(/\s+/, "")
+    end
   end
 end
+

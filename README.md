@@ -99,6 +99,7 @@ Anonymizer can replace the original data by anonymized entries or truncate the d
 - lastname
 - fullname
 - ancestor
+- birthday
 - login
 - email
 - telephone
@@ -128,6 +129,10 @@ In the example below, data in the `user_address` table  will be replaced by new,
 
 ```
 "key":"1",  <===== This key must be added to make Multithreading Update Enable.
+"birthday":{  <==== set it if you want birthdate between min_age and max_age
+ "min_age": 18, <=== Minimum age
+ "max_age": 65 <=== Maximum age
+},
 "tables": {
         "user_address": {
             "firstname": {
@@ -347,9 +352,81 @@ Anonymizer can run custom, row queries before and after anonymization process. I
 
 Before you run anonymizer you should add configuration file. Copy sample config file from `config/env/sample.yml` to `config/env/<env_name>.yml`
 
+
 ```
 RUBY_ENV=<env_name> bundle exec rake project:anonymize[example]
 ```
+### Faker env config
+
+If you want some geographic fake data, You can specify in the ENV some fakers customization. Example below
+```
+locale: fr  
+```
+In this example , Faker will generate some French specific data.
+here is fakers locale already on package
+
+ar
+bg
+ca-CAT
+ca
+da-DK
+de-AT
+de-CH
+de
+ee
+en-AU
+en-BORK
+en-CA
+en-GB
+en-IND
+en-MS
+en-NEP
+en-NG
+en-NZ
+en-PAK
+en-SG
+en-TH
+en-UG
+en-US
+en-ZA
+en-au-ocker
+en
+es-MX
+es
+fa
+fi-FI
+fr-CA
+fr-CH
+fr
+he
+hy
+id
+it
+ja
+ko
+lv
+nb-NO
+nl
+no
+pl
+pt-BR
+pt
+ru
+sk
+sv
+th
+tr
+uk
+vi
+zh-CN
+zh-TW
+
+In other hand , you can specify this:
+```
+bank_country_code: fr
+```
+If you want to generate IBAN specific for a country. At time, you cant generate iban's for a list of countries. 
+
 
 ## Development
 

@@ -1,0 +1,17 @@
+logger:
+  enabled: false
+dump_server:
+  host: 
+  user: 
+  port: 
+  passphrase:
+  path: /dump/dmp_company/
+database:
+  user: root
+  host: 127.0.0.1
+  pass: roooot
+  max_connections: 50
+locale: fr
+bank_country_code: fr
+fake_datas: 20000
+tmp_path: /tmp

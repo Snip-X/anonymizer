@@ -9,6 +9,15 @@ class Fake
     prepare_user_hash firstname, lastname
   end
 
+  def self.user_bank(bank_countries_code,min_age,max_age)
+    firstname = escape_characters_in_string(Faker::Name.first_name)
+    lastname = escape_characters_in_string(Faker::Name.last_name)
+    @bank_country=bank_countries_code
+    @min_a = min_age
+    @max_a = max_age
+    prepare_user_hash firstname, lastname
+  end
+
   # rubocop:disable Metrics/MethodLength
   # rubocop:disable Metrics/AbcSize
   def self.create_fake_user_table(database)
@@ -17,6 +26,7 @@ class Fake
       String :firstname
       String :lastname
       String :fullname
+      String :birthday
       String :ancestor
       String :login
       String :email
@@ -31,6 +41,7 @@ class Fake
       String :quote
       String :website
       String :iban
+      String :swift_bic
       String :regon
       String :pesel
       String :json
@@ -38,24 +49,36 @@ class Fake
   end
 
   def self.prepare_user_hash(firstname, lastname)
+     street=Faker::Address.street_name
+     postcode=Faker::Address.postcode
+     city= Faker::Address.city
+     fulladdr= rand(1..150).to_s+" "+street+", "+postcode+" "+city
+     date_of_birth = Faker::Date.birthday(min_age: @min_a, max_age: @max_a)
+     unless @bank_country.nil?
+	 iban=Faker::Bank.iban(country_code: @bank_country)
+     else
+	 iban=Faker::Bank.iban 
+     end
     {
       firstname: firstname,
       lastname: lastname,
       email: Faker::Internet.email(name:"#{firstname} #{lastname}"),
       login: Faker::Internet.user_name(specifier:"#{firstname} #{lastname}",separators: %w[. _ -]),
+      birthday: date_of_birth,
       fullname: "#{firstname} #{lastname}",
       telephone: Faker::PhoneNumber.cell_phone,
       ancestor: Faker::Name.name,
       company: Faker::Company.name,
-      street: Faker::Address.street_name,
-      postcode: Faker::Address.postcode,
-      city: Faker::Address.city,
-      full_address: Faker::Address.full_address,
+      street: street,
+      postcode: postcode,
+      city: city,
+      full_address: fulladdr,
       vat_id: Faker::Company.swedish_organisation_number,
       ip: Faker::Internet.private_ip_v4_address,
       quote: Faker::Movies::StarWars.quote,
       website: Faker::Internet.domain_name,
-      iban: Faker::Bank.iban,
+      iban: iban,
+      swift_bic: Faker::Bank.swift_bic,
       regon: generate_regon,
       pesel: Fake::Pesel.generate,
       json: '{}'

@@ -11,6 +11,7 @@ database:
   user: root
   host: 127.0.0.1
   pass: anonymizer
+locale: fr
 tmp_path: /tmp
 cap:
   ssh_options:

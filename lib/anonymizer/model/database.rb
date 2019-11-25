@@ -6,7 +6,7 @@ class Database
 
   def initialize(config)
     @config = config
-    @fake_len=CONFIG['fake_datas']
+    @fake_len = CONFIG['fake_datas']
     @timeout = CONFIG['database']['timeout']
     @timeout ||= 3600
     @db = Sequel.connect(
@@ -24,6 +24,12 @@ class Database
       pool_timeout: @timeout,
       password: CONFIG['database']['pass']
     )
+    unless CONFIG['locale'].nil?
+	Faker::Config.locale = CONFIG['locale']
+    end
+    unless CONFIG['bank_country_code'].nil?
+	@bank_country_code = CONFIG['bank_country_code']
+    end
     @db.extension(:connection_validator)
   end
 
@@ -165,11 +171,19 @@ class Database
 
   def insert_fake_data
     Fake.create_fake_user_table @db
+    unless @config['birthday'].nil?
+	@min_age = @config['birthday']['min_age']
+	@max_age = @config['birthday']['max_age']
+    else
+	@min_age = 18
+	@max_age = 65
+    end
+
     fake_user = @db[:fake_user]
     @db.pool.connection_validation_timeout = -1
     @db.disconnect ## Disconnection to make a specific connection for MT Process
     Parallel.map(1..@fake_len,in_processes: (Concurrent.processor_count*2),progress: "Making fake data table") {
-      fake_user.insert(Fake.user)
+      fake_user.insert(Fake.user_bank(@bank_country_code,@min_age,@max_age))
     }
     @db.disconnect ## Disconnection to make a specific connection for MT Process
   end
